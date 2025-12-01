@@ -93,15 +93,44 @@ The seed script creates:
 - **PricingRule:** Dynamic pricing rules (time-based multipliers)
 - **Booking:** Reservations with status tracking
 
-## Next Steps
+## Features Implemented
 
-After confirming the project structure and seed data, the following will be implemented:
+✅ **Authentication System**
+- User registration and login
+- NextAuth.js v5 with Credentials Provider
+- Role-based access control (USER/ADMIN)
 
-1. Authentication (NextAuth.js v5)
-2. Server Actions for business logic
-3. Payment adapter (mock implementation)
-4. Admin Dashboard
-5. Booking Flow UI
+✅ **Booking System**
+- Court selection and date picker
+- Available time slots display with dynamic pricing
+- Booking creation with payment processing (mock)
+- User booking management (view and cancel)
+
+✅ **Admin Dashboard**
+- View all bookings
+- Add new courts
+- Manage pricing rules (time-based multipliers)
+
+✅ **Business Logic**
+- Availability calculation with overlap detection
+- Dynamic pricing based on time rules
+- Payment adapter (mock - ready for Zarinpal/Shaparak integration)
+
+## UI/UX Features
+
+- **RTL Support:** Full right-to-left layout for Persian language
+- **Mobile-First Design:** Optimized for mobile devices (max-width: 28rem)
+- **Wireframe Styling:** Minimal Tailwind CSS (borders, grids, padding only)
+- **Business Logic Separation:** All logic in Server Actions, hooks, and utils
+
+## Pages
+
+- `/` - Home (redirects based on role)
+- `/login` - Login page
+- `/register` - Registration page
+- `/book` - Booking page (user)
+- `/my-bookings` - User's bookings
+- `/admin` - Admin dashboard
 
 ## Notes
 
@@ -109,5 +138,5 @@ After confirming the project structure and seed data, the following will be impl
 - Business logic is strictly separated from UI components
 - Minimal Tailwind CSS styling (wireframe-style only)
 - Payment adapter is a mock implementation (will be replaced with Zarinpal/Shaparak)
-
-# padel-court-booking
+- Mobile-first design: Even on desktop, the page is constrained to mobile width
+- All text is in Persian (Farsi) with RTL support
