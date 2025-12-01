@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String    // Hashed
+  name      String?
+  role      String    @default("USER") // "USER" or "ADMIN"
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Court {
+  id               String        @id @default(uuid())
+  name             String        // e.g. "Court 1"
+  basePricePerHour Decimal
+  bookings         Booking[]
+  pricingRules     PricingRule[] // For dynamic pricing
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+// Logic: Overrides base price. e.g., 18:00-23:00 has 1.5x multiplier
+model PricingRule {
+  id        String   @id @default(uuid())
+  courtId   String
+  court     Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  startTime String   // Format "HH:mm" (e.g., "18:00")
+  endTime   String   // Format "HH:mm" (e.g., "23:00")
+  multiplier Float   // e.g., 1.5
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Booking {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courtId    String
+  court      Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  startTime  DateTime
+  endTime    DateTime
+  totalPrice Decimal
+  status     String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED
+  createdAt  DateTime @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
