@@ -174,11 +174,12 @@ export default function MyBookingsClient() {
     setLoading(false);
   }
 
+  const now = new Date();
   const upcomingBookings = bookings.filter(
-    (b) => new Date(b.startTime) >= new Date() && b.status === 'CONFIRMED'
+    (b) => new Date(b.startTime) >= now && b.status === 'CONFIRMED'
   );
   const pastBookings = bookings.filter(
-    (b) => new Date(b.startTime) < new Date() || b.status !== 'CONFIRMED'
+    (b) => new Date(b.startTime) < now
   );
 
   if (loading && bookings.length === 0) {

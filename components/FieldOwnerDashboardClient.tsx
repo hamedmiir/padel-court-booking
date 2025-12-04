@@ -16,10 +16,10 @@ export default function FieldOwnerDashboardClient() {
   const [activeTab, setActiveTab] = useState<'courts' | 'clubs' | 'cancellations'>('courts');
   
   // Courts state
-  const [courts, setCourts] = useState<Array<{ id: string; name: string; sportType: string; basePricePerHour: number }>>([]);
+  const [courts, setCourts] = useState<Array<{ id: string; name: string; type: string; basePricePerHour: number }>>([]);
   const [showCourtForm, setShowCourtForm] = useState(false);
   const [courtName, setCourtName] = useState('');
-  const [courtSportType, setCourtSportType] = useState<'PADEL' | 'TENNIS'>('PADEL');
+  const [courtType, setCourtType] = useState<'OPEN' | 'CLOSE' | 'SALON'>('OPEN');
   const [courtPrice, setCourtPrice] = useState('');
   const [selectedClub, setSelectedClub] = useState('');
   
@@ -102,7 +102,7 @@ export default function FieldOwnerDashboardClient() {
 
     const formData = new FormData();
     formData.append('name', courtName);
-    formData.append('sportType', courtSportType);
+    formData.append('type', courtType);
     formData.append('basePricePerHour', courtPrice);
     if (selectedClub) {
       formData.append('sportsClubId', selectedClub);
@@ -114,7 +114,7 @@ export default function FieldOwnerDashboardClient() {
       setSuccess(result.message);
       setShowCourtForm(false);
       setCourtName('');
-      setCourtSportType('PADEL');
+      setCourtType('OPEN');
       setCourtPrice('');
       setSelectedClub('');
       loadData();
@@ -269,14 +269,15 @@ export default function FieldOwnerDashboardClient() {
                     />
                   </div>
                   <div>
-                    <label className="block mb-1">نوع ورزش</label>
+                    <label className="block mb-1">نوع زمین</label>
                     <select
-                      value={courtSportType}
-                      onChange={(e) => setCourtSportType(e.target.value as 'PADEL' | 'TENNIS')}
+                      value={courtType}
+                      onChange={(e) => setCourtType(e.target.value as 'OPEN' | 'CLOSE' | 'SALON')}
                       className="w-full p-2 border rounded"
                     >
-                      <option value="PADEL">پادل</option>
-                      <option value="TENNIS">تنیس</option>
+                      <option value="OPEN">باز</option>
+                      <option value="CLOSE">بسته</option>
+                      <option value="SALON">سالن</option>
                     </select>
                   </div>
                   <div>
@@ -321,7 +322,7 @@ export default function FieldOwnerDashboardClient() {
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="font-bold">
-                        {court.name} ({court.sportType === 'PADEL' ? 'پادل' : 'تنیس'})
+                        {court.name} ({court.type === 'OPEN' ? 'باز' : court.type === 'CLOSE' ? 'بسته' : 'سالن'})
                       </div>
                       <div className="text-sm text-gray-600">
                         قیمت پایه: {court.basePricePerHour.toLocaleString('fa-IR')} تومان/ساعت

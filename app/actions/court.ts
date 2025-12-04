@@ -73,7 +73,7 @@ export async function createCourt(
 
     const rawData = {
       name: formData.get('name') as string,
-      sportType: formData.get('sportType') as string,
+      type: formData.get('type') as string,
       basePricePerHour: formData.get('basePricePerHour') as string,
       sportsClubId: formData.get('sportsClubId') as string,
     };

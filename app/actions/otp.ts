@@ -61,7 +61,7 @@ export async function sendOtp(
     // Create new OTP
     await prisma.otpCode.create({
       data: {
-        phone: isEmailIdentifier ? '' : identifier,
+        phone: isEmailIdentifier ? null : identifier,
         email: isEmailIdentifier ? identifier : null,
         code,
         expiresAt,
