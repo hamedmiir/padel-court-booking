@@ -11,49 +11,130 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  password  String    // Hashed
-  name      String?
-  role      String    @default("USER") // "USER" or "ADMIN"
-  bookings  Booking[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id            String               @id @default(uuid())
+  email         String?              @unique // Optional, verified
+  phone         String?              @unique // Required for login, verified
+  name          String?
+  family        String?
+  dateOfBirth   DateTime?
+  gender        String? // "MALE", "FEMALE", "OTHER"
+  height        Int? // in cm
+  photo         String? // URL to photo
+  emailVerified Boolean              @default(false)
+  phoneVerified Boolean              @default(false)
+  role          String               @default("USER") // "USER", "ADMIN", or "FIELD_OWNER"
+  bookings      Booking[]
+  participatedIn BookingParticipant[]
+  ownedCourts   Court[] // Courts owned by field owner
+  ownedClubs    SportsClub[] // Sports clubs owned by field owner
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
 }
 
-model Court {
-  id               String        @id @default(uuid())
-  name             String        // e.g. "Court 1"
-  basePricePerHour Decimal
-  bookings         Booking[]
-  pricingRules     PricingRule[] // For dynamic pricing
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+model City {
+  id         String       @id @default(uuid())
+  name       String       @unique
+  clubs      SportsClub[]
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
 }
 
-// Logic: Overrides base price. e.g., 18:00-23:00 has 1.5x multiplier
-model PricingRule {
+model SportsClub {
   id        String   @id @default(uuid())
-  courtId   String
-  court     Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
-  startTime String   // Format "HH:mm" (e.g., "18:00")
-  endTime   String   // Format "HH:mm" (e.g., "23:00")
-  multiplier Float   // e.g., 1.5
+  name      String
+  address   String?
+  phone     String?
+  email     String?
+  cityId    String
+  city      City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  ownerId   String?
+  owner     User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  courts    Court[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Booking {
-  id         String   @id @default(uuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courtId    String
-  court      Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
-  startTime  DateTime
-  endTime    DateTime
-  totalPrice Decimal
-  status     String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED
-  createdAt  DateTime @default(now())
-  updatedAt DateTime  @updatedAt
+model Court {
+  id                 String              @id @default(uuid())
+  name               String // e.g. "Court 1"
+  type               String              @default("OPEN") // "OPEN", "CLOSE", "SALON"
+  basePricePerHour   Decimal
+  ownerId            String? // Field owner who created this court
+  owner              User?               @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  sportsClubId       String
+  sportsClub         SportsClub         @relation(fields: [sportsClubId], references: [id], onDelete: Cascade)
+  bookings           Booking[]
+  pricingRules       PricingRule[] // For dynamic pricing
+  cancellationPolicy CancellationPolicy?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 }
 
+// Logic: Overrides base price. e.g., 18:00-23:00 has 1.5x multiplier
+model PricingRule {
+  id         String   @id @default(uuid())
+  courtId    String
+  court      Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  startTime  String // Format "HH:mm" (e.g., "18:00")
+  endTime    String // Format "HH:mm" (e.g., "23:00")
+  multiplier Float // e.g., 1.5
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Booking {
+  id          String               @id @default(uuid())
+  userId      String
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courtId     String
+  court       Court                @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  startTime   DateTime
+  endTime     DateTime
+  totalPrice  Decimal
+  status      String               @default("PENDING") // PENDING, CONFIRMED, CANCELLED
+  transactionId String? // Payment transaction ID from gateway
+  inviteToken String?              @unique // Token for invitation links
+  participants BookingParticipant[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+}
+
+model BookingParticipant {
+  id        String   @id @default(uuid())
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email     String? // For invited users not yet registered
+  phone     String? // For invited users not yet registered
+  name      String? // Name of invited participant
+  gender    String? // "MALE", "FEMALE", "OTHER"
+  status    String   @default("PENDING") // PENDING, ACCEPTED, DECLINED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([bookingId, userId])
+  @@unique([bookingId, email])
+  @@unique([bookingId, phone])
+}
+
+model CancellationPolicy {
+  id               String   @id @default(uuid())
+  courtId          String   @unique
+  court            Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  hoursBeforeStart Int // Cancel at least X hours before start time
+  refundPercentage Int      @default(100) // Percentage of refund (0-100)
+  description      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model OtpCode {
+  id        String   @id @default(uuid())
+  phone     String
+  email     String?
+  code      String // 6-digit OTP
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
